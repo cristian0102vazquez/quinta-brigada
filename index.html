@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quinta Brigada - Acceso al Sistema</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter & Cinzel -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brigada: {
+                            gold: '#d4af37',
+                            cyan: '#00f2fe',
+                            dark: '#0a0f1d',
+                            card: '#12192c',
+                            accent: '#4facfe'
+                        }
+                    },
+                    fontFamily: {
+                        cinzel: ['Cinzel', 'serif'],
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Estilos personalizados para efectos místicos y animaciones */
+        body {
+            background-color: #060913;
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+
+        /* Splash Screen Animation */
+        #splash-screen {
+            transition: opacity 1s ease-in-out, visibility 1s ease-in-out;
+        }
+
+        .img-glow {
+            box-shadow: 0 0 50px rgba(0, 242, 254, 0.3), 0 0 20px rgba(212, 175, 55, 0.4);
+            animation: pulseGlow 4s infinite alternate ease-in-out;
+        }
+
+        @keyframes pulseGlow {
+            0% {
+                box-shadow: 0 0 30px rgba(0, 242, 254, 0.2), 0 0 15px rgba(212, 175, 55, 0.2);
+                transform: scale(1);
+            }
+            100% {
+                box-shadow: 0 0 60px rgba(0, 242, 254, 0.5), 0 0 30px rgba(212, 175, 55, 0.6);
+                transform: scale(1.02);
+            }
+        }
+
+        .text-glow {
+            text-shadow: 0 0 10px rgba(212, 175, 55, 0.7), 0 0 20px rgba(0, 242, 254, 0.5);
+        }
+
+        .glass-panel {
+            background: rgba(18, 25, 44, 0.75);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+        }
+
+        .tab-btn.active {
+            border-bottom: 2px solid #d4af37;
+            color: #d4af37;
+            background: rgba(212, 175, 55, 0.1);
+        }
+    </style>
+</head>
+<body class="min-h-screen font-sans flex flex-col justify-between items-center relative">
+
+    <!-- PANTALLA DE ENTRADA CON ANIMACIÓN (SPLASH SCREEN) -->
+    <div id="splash-screen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black p-4">
+        <div class="relative max-w-4xl w-full flex flex-col items-center text-center">
+            <!-- Imagen suministrada de Quinta Brigada -->
+            <div class="relative overflow-hidden rounded-2xl border-2 border-yellow-600/40 img-glow mb-8 transition-transform duration-700 hover:scale-105">
+                <img id="splash-img" src="https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&w=1200&q=80" 
+                     alt="Quinta Brigada" 
+                     class="w-full max-h-[60vh] object-cover"
+                     onerror="this.src='https://placehold.co/1200x600/0a0f1d/d4af37?text=QUINTA+BRIGADA'">
+                <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
+                <h1 class="absolute bottom-6 left-0 right-0 font-cinzel text-3xl md:text-5xl font-extrabold text-amber-300 tracking-widest text-glow">
+                    QUINTA BRIGADA
+                </h1>
+            </div>
+
+            <p class="text-cyan-300 tracking-wide text-sm md:text-base mb-8 animate-pulse font-medium">
+                Conectando con la Base de Datos SQLite Cloud...
+            </p>
+
+            <button onclick="enterSystem()" class="px-8 py-3 bg-gradient-to-r from-amber-600 to-yellow-500 hover:from-amber-500 hover:to-yellow-400 text-black font-bold font-cinzel rounded-lg shadow-lg hover:shadow-cyan-500/50 transition-all duration-300 transform hover:-translate-y-1">
+                ENTRAR AL SISTEMA <i class="fa-solid fa-shield-halved ml-2"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- CONTENIDO PRINCIPAL / SISTEMA DE ACCESO -->
+    <main class="w-full max-w-md mx-auto my-auto p-4 z-10 flex-grow flex flex-col justify-center">
+        <!-- Encabezado de la App -->
+        <div class="text-center mb-6">
+            <h2 class="font-cinzel text-3xl font-extrabold text-amber-400 text-glow tracking-wider">QUINTA BRIGADA</h2>
+            <p class="text-xs text-cyan-400 tracking-widest uppercase mt-1">Sistema de Autenticación Reservado (Máx 7)</p>
+        </div>
+
+        <!-- Tarjeta Principal -->
+        <div class="glass-panel rounded-2xl p-6 sm:p-8">
+            <!-- PESTAÑAS DE NAVEGACIÓN -->
+            <div class="flex border-b border-gray-700/60 mb-6 text-sm font-medium text-gray-400">
+                <button onclick="switchTab('login')" id="tab-login" class="tab-btn active flex-1 py-2 text-center transition-all duration-200">
+                    <i class="fa-solid fa-right-to-bracket mr-1"></i> Entrar
+                </button>
+                <button onclick="switchTab('register')" id="tab-register" class="tab-btn flex-1 py-2 text-center transition-all duration-200">
+                    <i class="fa-solid fa-user-plus mr-1"></i> Registro
+                </button>
+                <button onclick="switchTab('recover')" id="tab-recover" class="tab-btn flex-1 py-2 text-center transition-all duration-200">
+                    <i class="fa-solid fa-key mr-1"></i> Recuperar
+                </button>
+            </div>
+
+            <!-- CONTENEDOR DE ALERTAS / MENSAJES -->
+            <div id="alert-box" class="hidden mb-4 p-3 rounded-lg text-xs font-medium border transition-all"></div>
+
+            <!-- FORMULARIO 1: LOGIN -->
+            <form id="form-login" onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-300 uppercase mb-1">Usuario</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                            <i class="fa-solid fa-user"></i>
+                        </span>
+                        <input type="text" id="login-username" required placeholder="Nombre de usuario" 
+                               class="w-full bg-slate-900/90 border border-gray-700 rounded-lg py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-300 uppercase mb-1">Contraseña</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                            <i class="fa-solid fa-lock"></i>
+                        </span>
+                        <input type="password" id="login-password" required placeholder="••••••••" 
+                               class="w-full bg-slate-900/90 border border-gray-700 rounded-lg py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400">
+                    </div>
+                </div>
+
+                <button type="submit" id="btn-login" class="w-full py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm uppercase rounded-lg shadow-md transition duration-200 flex justify-center items-center">
+                    Iniciar Sesión
+                </button>
+            </form>
+
+            <!-- FORMULARIO 2: REGISTRO (Límite 7) -->
+            <form id="form-register" onsubmit="handleRegister(event)" class="hidden space-y-4">
+                <div class="flex justify-between items-center text-xs text-cyan-400 mb-1">
+                    <span>Cupos disponibles:</span>
+                    <span id="user-count-badge" class="font-bold bg-cyan-950 text-cyan-300 px-2 py-0.5 rounded border border-cyan-700">Cargando...</span>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-300 uppercase mb-1">Nombre de Usuario</label>
+                    <input type="text" id="reg-username" required placeholder="Ej. Soldado1" 
+                           class="w-full bg-slate-900/90 border border-gray-700 rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:border-cyan-400">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-300 uppercase mb-1">Contraseña</label>
+                    <input type="password" id="reg-password" required placeholder="••••••••" 
+                           class="w-full bg-slate-900/90 border border-gray-700 rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:border-cyan-400">
+                </div>
+
+                <!-- Pregunta de Seguridad 1 -->
+                <div>
+                    <label class="block text-xs font-semibold text-amber-300/90 uppercase mb-1">Pregunta de Seguridad 1</label>
+                    <select id="reg-q1" class="w-full bg-slate-900/90 border border-gray-700 rounded-lg py-2 px-3 text-xs text-gray-200 focus:outline-none mb-1">
+                        <option value="¿Nombre de tu primera mascota?">¿Nombre de tu primera mascota?</option>
+                        <option value="¿Ciudad donde naciste?">¿Ciudad donde naciste?</option>
+                        <option value="¿Nombre de tu mejor amigo de la infancia?">¿Nombre de tu mejor amigo de la infancia?</option>
+                    </select>
+                    <input type="text" id="reg-a1" required placeholder="Respuesta 1" 
+                           class="w-full bg-slate-900/90 border border-gray-700 rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:border-cyan-400">
+                </div>
+
+                <!-- Pregunta de Seguridad 2 -->
+                <div>
+                    <label class="block text-xs font-semibold text-amber-300/90 uppercase mb-1">Pregunta de Seguridad 2</label>
+                    <select id="reg-q2" class="w-full bg-slate-900/90 border border-gray-700 rounded-lg py-2 px-3 text-xs text-gray-200 focus:outline-none mb-1">
+                        <option value="¿Cual es tu comida favorita?">¿Cuál es tu comida favorita?</option>
+                        <option value="¿Marca de tu primer vehículo?">¿Marca de tu primer vehículo?</option>
+                        <option value="¿Nombre de tu escuela primaria?">¿Nombre de tu escuela primaria?</option>
+                    </select>
+                    <input type="text" id="reg-a2" required placeholder="Respuesta 2" 
+                           class="w-full bg-slate-900/90 border border-gray-700 rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:border-cyan-400">
+                </div>
+
+                <button type="submit" id="btn-register" class="w-full py-3 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-sm uppercase rounded-lg shadow-md transition duration-200 flex justify-center items-center">
+                    Registrar Usuario
+                </button>
+            </form>
+
+            <!-- FORMULARIO 3: RECUPERACIÓN DE CONTRASEÑA -->
+            <form id="form-recover" onsubmit="handleRecovery(event)" class="hidden space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-300 uppercase mb-1">Usuario a Recuperar</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="rec-username" required placeholder="Usuario registrado" 
+                               class="flex-1 bg-slate-900/90 border border-gray-700 rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:border-amber-400">
+                        <button type="button" onclick="fetchSecurityQuestions()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 border border-amber-500/40 text-amber-400 text-xs font-medium rounded-lg">
+                            Cargar
+                        </button>
+                    </div>
+                </div>
+
+                <div id="questions-section" class="space-y-3 hidden border-t border-gray-800 pt-3">
+                    <div>
+                        <label id="lbl-q1" class="block text-xs font-medium text-amber-300 mb-1">Pregunta 1</label>
+                        <input type="text" id="rec-a1" required placeholder="Tu respuesta 1" 
+                               class="w-full bg-slate-900/90 border border-gray-700 rounded-lg py-2 px-3 text-sm text-white focus:outline-none">
+                    </div>
+                    <div>
+                        <label id="lbl-q2" class="block text-xs font-medium text-amber-300 mb-1">Pregunta 2</label>
+                        <input type="text" id="rec-a2" required placeholder="Tu respuesta 2" 
+                               class="w-full bg-slate-900/90 border border-gray-700 rounded-lg py-2 px-3 text-sm text-white focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-emerald-400 uppercase mb-1">Nueva Contraseña</label>
+                        <input type="password" id="rec-new-password" required placeholder="Nueva contraseña" 
+                               class="w-full bg-slate-900/90 border border-emerald-600/50 rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:border-emerald-400">
+                    </div>
+
+                    <button type="submit" id="btn-recover" class="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm uppercase rounded-lg shadow-md transition duration-200 flex justify-center items-center">
+                        Cambiar Contraseña
+                    </button>
+                </div>
+            </form>
+
+            <!-- VISTA DE PANEL TRAS LOGIN EXITOSO -->
+            <div id="dashboard-view" class="hidden text-center space-y-6">
+                <div class="inline-flex p-4 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 mb-2">
+                    <i class="fa-solid fa-circle-check text-4xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-white">¡Acceso Concedido!</h3>
+                    <p class="text-sm text-gray-400 mt-1">Bienvenido al área restringida de la Quinta Brigada</p>
+                    <p id="dashboard-user" class="text-lg font-cinzel font-bold text-amber-400 mt-2"></p>
+                </div>
+                <div class="bg-slate-900/80 p-4 rounded-xl border border-gray-800 text-left text-xs space-y-2">
+                    <div class="flex justify-between text-gray-400">
+                        <span>Estado del Servidor:</span>
+                        <span class="text-emerald-400 font-semibold"><i class="fa-solid fa-signal text-[10px]"></i> SQLite Cloud Online</span>
+                    </div>
+                    <div class="flex justify-between text-gray-400">
+                        <span>Base de Datos:</span>
+                        <span class="text-cyan-400">cris.db</span>
+                    </div>
+                </div>
+                <button onclick="logout()" class="w-full py-2.5 bg-red-600/80 hover:bg-red-500 text-white font-medium text-xs uppercase rounded-lg transition duration-200">
+                    Cerrar Sesión
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- PIE DE PÁGINA -->
+    <footer class="w-full py-4 text-center text-xs text-gray-500 z-10">
+        <p>Quinta Brigada &copy; 2026 - Conexión Activa SQLite Cloud API</p>
+    </footer>
+
+    <!-- LÓGICA Y CONEXIÓN A SQLITE CLOUD -->
+    <script>
+        // Configuración SQLite Cloud
+        const SQLITE_CLOUD_CONFIG = {
+            hostname: "crvk5bjqdk.g3.sqlite.cloud",
+            port: 8860,
+            database: "cris",
+            apiKey: "RuPS1aDoOO58QrLXbZ5SyqnVtlAGVF5dBq3OTvZbD8Q"
+        };
+
+        // URL del Endpoint de SQLite Cloud REST API
+        const API_URL = `https://${SQLITE_CLOUD_CONFIG.hostname}/api/v2/webrequest`;
+
+        // Ocultar pantalla de bienvenida
+        function enterSystem() {
+            const splash = document.getElementById('splash-screen');
+            splash.style.opacity = '0';
+            splash.style.visibility = 'hidden';
+            // Inicializar base de datos
+            initDatabase();
+        }
+
+        // Ejecutar consultas SQL en SQLite Cloud vía REST API
+        async function runQuery(sql, bindings = []) {
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${SQLITE_CLOUD_CONFIG.apiKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        database: SQLITE_CLOUD_CONFIG.database,
+                        sql: sql,
+                        parameters: bindings
+                    })
+                });
+
+                const data = await response.json();
+                if (data.status === 'error' || data.error) {
+                    throw new Error(data.error || 'Error al ejecutar la consulta SQL.');
+                }
+                return data;
+            } catch (err) {
+                console.error("Error SQLite Cloud:", err);
+                throw err;
+            }
+        }
+
+        // Inicialización de la tabla de usuarios en SQLite Cloud
+        async function initDatabase() {
+            showAlert('Verificando conexión con SQLite Cloud...', 'info');
+            const createTableSQL = `
+                CREATE TABLE IF NOT EXISTS users (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    username TEXT UNIQUE NOT NULL,
+                    password TEXT NOT NULL,
+                    question1 TEXT NOT NULL,
+                    answer1 TEXT NOT NULL,
+                    question2 TEXT NOT NULL,
+                    answer2 TEXT NOT NULL,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                );
+            `;
+            try {
+                await runQuery(createTableSQL);
+                updateUserBadge();
+                hideAlert();
+            } catch (error) {
+                showAlert('No se pudo establecer la tabla de la base de datos: ' + error.message, 'error');
+            }
+        }
+
+        // Actualizar el contador de usuarios registrados (Máximo 7)
+        async function updateUserBadge() {
+            try {
+                const res = await runQuery("SELECT COUNT(*) as total FROM users;");
+                let count = 0;
+                if (res.results && res.results[0] && res.results[0].columns) {
+                    // Formato de retorno SQLite Cloud
+                    const rows = res.results[0].rows || [];
+                    if (rows.length > 0) count = rows[0][0];
+                }
+                const badge = document.getElementById('user-count-badge');
+                badge.innerText = `${count} / 7`;
+                
+                if (count >= 7) {
+                    badge.classList.remove('text-cyan-300', 'bg-cyan-950');
+                    badge.classList.add('text-red-400', 'bg-red-950');
+                } else {
+                    badge.classList.remove('text-red-400', 'bg-red-950');
+                    badge.classList.add('text-cyan-300', 'bg-cyan-950');
+                }
+                return count;
+            } catch (e) {
+                console.error(e);
+                return 0;
+            }
+        }
+
+        // Cambio de Pestañas
+        function switchTab(tab) {
+            hideAlert();
+            ['login', 'register', 'recover'].forEach(t => {
+                document.getElementById(`form-${t}`).classList.add('hidden');
+                document.getElementById(`tab-${t}`).classList.remove('active');
+            });
+            document.getElementById('dashboard-view').classList.add('hidden');
+
+            document.getElementById(`form-${tab}`).classList.remove('hidden');
+            document.getElementById(`tab-${tab}`).classList.add('active');
+
+            if (tab === 'register') {
+                updateUserBadge();
+            }
+        }
+
+        // Mostrar Notificaciones
+        function showAlert(msg, type = 'error') {
+            const box = document.getElementById('alert-box');
+            box.classList.remove('hidden', 'bg-red-950/80', 'border-red-500', 'text-red-300', 'bg-emerald-950/80', 'border-emerald-500', 'text-emerald-300', 'bg-blue-950/80', 'border-blue-500', 'text-blue-300');
+            
+            if (type === 'error') {
+                box.classList.add('bg-red-950/80', 'border-red-500', 'text-red-300');
+            } else if (type === 'success') {
+                box.classList.add('bg-emerald-950/80', 'border-emerald-500', 'text-emerald-300');
+            } else {
+                box.classList.add('bg-blue-950/80', 'border-blue-500', 'text-blue-300');
+            }
+
+            box.innerHTML = `<i class="fa-solid ${type === 'error' ? 'fa-triangle-exclamation' : type === 'success' ? 'fa-circle-check' : 'fa-info-circle'} mr-2"></i> ${msg}`;
+        }
+
+        function hideAlert() {
+            document.getElementById('alert-box').classList.add('hidden');
+        }
+
+        // LÓGICA 1: INICIO DE SESIÓN
+        async function handleLogin(e) {
+            e.preventDefault();
+            const user = document.getElementById('login-username').value.trim();
+            const pass = document.getElementById('login-password').value.trim();
+            const btn = document.getElementById('btn-login');
+
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin mr-2"></i> Verificando...`;
+
+            try {
+                const res = await runQuery("SELECT * FROM users WHERE username = ? AND password = ?;", [user, pass]);
+                const rows = (res.results && res.results[0]) ? res.results[0].rows : [];
+
+                if (rows && rows.length > 0) {
+                    showAlert('¡Inicio de sesión exitoso!', 'success');
+                    setTimeout(() => {
+                        document.getElementById('form-login').classList.add('hidden');
+                        document.getElementById('dashboard-view').classList.remove('hidden');
+                        document.getElementById('dashboard-user').innerText = user.toUpperCase();
+                        hideAlert();
+                    }, 800);
+                } else {
+                    showAlert('Usuario o contraseña incorrectos.', 'error');
+                }
+            } catch (err) {
+                showAlert('Error al autenticar con la base de datos.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `Iniciar Sesión`;
+            }
+        }
+
+        // LÓGICA 2: REGISTRO DE USUARIO (MÁXIMO 7)
+        async function handleRegister(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-register');
+            
+            // Verificar límite de 7 personas
+            const count = await updateUserBadge();
+            if (count >= 7) {
+                showAlert('Límite alcanzado: Ya hay 7 personas registradas en la base de datos.', 'error');
+                return;
+            }
+
+            const user = document.getElementById('reg-username').value.trim();
+            const pass = document.getElementById('reg-password').value.trim();
+            const q1 = document.getElementById('reg-q1').value;
+            const a1 = document.getElementById('reg-a1').value.trim().toLowerCase();
+            const q2 = document.getElementById('reg-q2').value;
+            const a2 = document.getElementById('reg-a2').value.trim().toLowerCase();
+
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin mr-2"></i> Registrando...`;
+
+            try {
+                // Verificar si usuario ya existe
+                const checkUser = await runQuery("SELECT id FROM users WHERE username = ?;", [user]);
+                if (checkUser.results && checkUser.results[0] && checkUser.results[0].rows.length > 0) {
+                    showAlert('El nombre de usuario ya existe. Elije otro.', 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = `Registrar Usuario`;
+                    return;
+                }
+
+                // Insertar nuevo usuario
+                const insertSQL = `
+                    INSERT INTO users (username, password, question1, answer1, question2, answer2)
+                    VALUES (?, ?, ?, ?, ?, ?);
+                `;
+                await runQuery(insertSQL, [user, pass, q1, a1, q2, a2]);
+                
+                showAlert('¡Usuario registrado con éxito en SQLite Cloud!', 'success');
+                document.getElementById('form-register').reset();
+                updateUserBadge();
+
+                setTimeout(() => {
+                    switchTab('login');
+                }, 1500);
+
+            } catch (err) {
+                showAlert('Error al registrar usuario: ' + err.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `Registrar Usuario`;
+            }
+        }
+
+        // LÓGICA 3: OBTENER PREGUNTAS DE SEGURIDAD PARA RECUPERACIÓN
+        let currentRecoveryUser = null;
+
+        async function fetchSecurityQuestions() {
+            const user = document.getElementById('rec-username').value.trim();
+            if (!user) {
+                showAlert('Ingresa tu nombre de usuario para buscar preguntas.', 'error');
+                return;
+            }
+
+            try {
+                const res = await runQuery("SELECT question1, question2 FROM users WHERE username = ?;", [user]);
+                const rows = (res.results && res.results[0]) ? res.results[0].rows : [];
+
+                if (!rows || rows.length === 0) {
+                    showAlert('No se encontró ningún usuario registrado con ese nombre.', 'error');
+                    document.getElementById('questions-section').classList.add('hidden');
+                    return;
+                }
+
+                const q1 = rows[0][0];
+                const q2 = rows[0][1];
+
+                document.getElementById('lbl-q1').innerText = q1;
+                document.getElementById('lbl-q2').innerText = q2;
+                document.getElementById('questions-section').classList.remove('hidden');
+                currentRecoveryUser = user;
+                showAlert('Preguntas de seguridad cargadas.', 'info');
+
+            } catch (err) {
+                showAlert('Error al consultar preguntas de seguridad.', 'error');
+            }
+        }
+
+        // LÓGICA 4: CAMBIAR CONTRASEÑA VÍA PREGUNTAS
+        async function handleRecovery(e) {
+            e.preventDefault();
+            if (!currentRecoveryUser) return;
+
+            const a1Input = document.getElementById('rec-a1').value.trim().toLowerCase();
+            const a2Input = document.getElementById('rec-a2').value.trim().toLowerCase();
+            const newPass = document.getElementById('rec-new-password').value.trim();
+            const btn = document.getElementById('btn-recover');
+
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin mr-2"></i> Actualizando...`;
+
+            try {
+                const res = await runQuery("SELECT answer1, answer2 FROM users WHERE username = ?;", [currentRecoveryUser]);
+                const rows = (res.results && res.results[0]) ? res.results[0].rows : [];
+
+                if (rows && rows.length > 0) {
+                    const realA1 = rows[0][0];
+                    const realA2 = rows[0][1];
+
+                    if (a1Input === realA1 && a2Input === realA2) {
+                        // Respuestas correctas -> Actualizar clave
+                        await runQuery("UPDATE users SET password = ? WHERE username = ?;", [newPass, currentRecoveryUser]);
+                        showAlert('¡Contraseña cambiada exitosamente! Ya puedes iniciar sesión.', 'success');
+                        
+                        document.getElementById('form-recover').reset();
+                        document.getElementById('questions-section').classList.add('hidden');
+                        
+                        setTimeout(() => {
+                            switchTab('login');
+                        }, 2000);
+                    } else {
+                        showAlert('Una o ambas respuestas de seguridad son incorrectas.', 'error');
+                    }
+                }
+            } catch (err) {
+                showAlert('Error al actualizar la contraseña.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `Cambiar Contraseña`;
+            }
+        }
+
+        function logout() {
+            switchTab('login');
+            document.getElementById('login-username').value = '';
+            document.getElementById('login-password').value = '';
+        }
+    </script>
+</body>
+</html>
